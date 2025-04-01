@@ -69,14 +69,13 @@ trait WindowsAnsiJavaModule extends JavaModule {
     }
   def javacSystemJvmId = T {
     if (Properties.isMac && isArm64) s"zulu:${jvmRelease()}"
+    else if (Properties.isWin && isArm64)
+      if (jvmRelease() == "8") "https://github.com/adoptium/temurin8-binaries/releases/download/jdk8u442-b06/OpenJDK8U-jdk_x64_windows_hotspot_8u442b06.zip"
+      else s"liberica:${jvmRelease()}"
     else s"adoptium:${jvmRelease()}"
   }
   def javacSystemJvm = T.source {
-    val output = os.proc("cs", "java-home", "--jvm", javacSystemJvmId())
-      .call(cwd = T.workspace)
-      .out.trim()
-    val javaHome = os.Path(output)
-    assert(os.isDir(javaHome))
+    val javaHome = os.Path(coursierapi.JvmManager.create().get(javacSystemJvmId()), os.pwd)
     PathRef(javaHome, quick = true)
   }
   // adds options equivalent to --release ${jvmRelease()} + allowing access to unsupported JDK APIs
@@ -103,6 +102,26 @@ object native extends JavaModule with WindowsAnsiPublishModule {
     ivy"io.github.alexarchambault:is-terminal:0.1.2",
     ivy"org.jline:jline-native:3.29.0"
   )
+
+  def jdk22ClassesResources = T {
+    val destDir = T.dest / "META-INF/versions/22"
+    os.makeDir.all(destDir)
+    for (elem <- os.list(jdk22.compile().classes.path))
+      os.copy(elem, destDir / elem.last)
+    PathRef(T.dest)
+  }
+
+  def resources = T {
+    T.sources(Seq(PathRef(millSourcePath / "resources")) ++ Seq(jdk22ClassesResources()))
+  }
+  def manifest = T {
+    super.manifest().add("Multi-Release" -> "true")
+  }
+
+  object jdk22 extends WindowsAnsiJavaModule {
+    def jvmRelease: T[String] = Task.Input("22")
+    def moduleDeps = Seq(native)
+  }
 }
 
 object `native-graalvm` extends JavaModule with WindowsAnsiPublishModule {
