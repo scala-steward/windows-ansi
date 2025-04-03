@@ -28,7 +28,7 @@ public final class NativeTerminal {
      *
      * @return the terminal size
      */
-    public static TerminalSize getSize() {
+    public static TerminalSize getSize() throws IOException {
         if (isWindows)
             return WindowsTerm.getSize();
         return UnixTerm.getSize(true);

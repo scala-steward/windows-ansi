@@ -2,6 +2,8 @@ package io.github.alexarchambault.nativeterm;
 
 import io.github.alexarchambault.nativeterm.internal.SigWinch;
 
+import java.io.IOException;
+
 /**
  * Helper caching the terminal size, and re-querying it only if a SIGWINCH has been received
  *
@@ -40,7 +42,7 @@ public final class TerminalSizeCache {
      *
      * @return the terminal size
      */
-    public TerminalSize getSize() {
+    public TerminalSize getSize() throws IOException {
         if (NativeTerminal.isWindows)
             return NativeTerminal.getSize();
 
@@ -50,7 +52,7 @@ public final class TerminalSizeCache {
         return terminalSize0;
     }
 
-    private TerminalSize update() {
+    private TerminalSize update() throws IOException {
         TerminalSize terminalSize0 = NativeTerminal.getSize();
         terminalSize = terminalSize0;
         return terminalSize0;
