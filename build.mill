@@ -119,7 +119,7 @@ object native extends JavaModule with WindowsAnsiPublishModule {
   def artifactName = "native-terminal"
   def mvnDeps = Seq(
     mvn"io.github.alexarchambault:is-terminal:0.1.2",
-    mvn"org.jline:jline-native:4.4.7"
+    mvn"org.jline:jline-native:4.4.8"
   )
 
   def jdk22ClassesResources = Task {
